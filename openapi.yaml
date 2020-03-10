@@ -1,0 +1,244 @@
+openapi: '3.0.0'
+
+info:
+  version: 1.0.0
+  title:  "GDBL非同期AI基盤 API"
+  description: |
+    #### GDBLAIプラットフォームで利用可能なAPIの仕様を以下に示します。
+  #termsOfService: "http://swagger.io/terms/"
+  contact:
+    email: "gdbl_helpdesk@kits.nttdata.co.jp"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+servers:
+  - url: "https://apge-001.mgt.{domain}"
+    variables:
+      domain:
+        default: t-openconnect.com
+        enum:
+          - t-openconnect.com
+          - d-t-openconnect.com
+          - p-t-openconnect.com
+tags:
+- name: "GDBL非同期AI基盤 API"
+  description: "GDBL非同期AI基盤のAPI"
+paths:
+  /gdblurlallocate:
+    post:
+      tags:
+      - "GDBL非同期AI基盤 API"
+      summary: "アップロード先払い出し"
+      description: "S3の入出力フォルダを作成し、受付IDとURLを返却します"
+      parameters:
+        - $ref: "#/components/parameters/api_key"
+      responses:
+        200:
+          $ref: "#/components/responses/200OK_urlallocate"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        404:
+          $ref: "#/components/responses/NotFound"
+        405:
+          $ref: "#/components/responses/MethodNotAllowed"
+        406:
+          $ref: "#/components/responses/NotAcceptable"
+        409:
+          $ref: "#/components/responses/Conflict"
+        415:
+          $ref: "#/components/responses/UnsupportedMediaType"
+        429:
+          $ref: "#/components/responses/TooManyRequests"
+        5XX:
+          $ref: "#/components/responses/InternalServerError"
+          
+  /gdblsoudenanalyzeai:
+    post:
+      tags:
+      - "GDBL非同期AI基盤 API"
+      summary: "送電線診断AI実行受付"
+      description: "指定した受付IDの送電線診断AIのジョブ実行依頼を発行します"
+      parameters:
+        - $ref: "#/components/parameters/api_key"
+      requestBody:
+        description: "受付IDをjsonで指定する"
+        required: true
+        content:
+          application/json:
+            schema:
+              type: "object"
+              properties:
+                executionReception:
+                  properties:
+                    receiptId:
+                      type: "string"
+                      example: "1234567890"
+      responses:
+        200:
+          $ref: "#/components/responses/200OK_execute"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        404:
+          $ref: "#/components/responses/NotFound"
+        405:
+          $ref: "#/components/responses/MethodNotAllowed"
+        406:
+          $ref: "#/components/responses/NotAcceptable"
+        409:
+          $ref: "#/components/responses/Conflict"
+        415:
+          $ref: "#/components/responses/UnsupportedMediaType"
+        429:
+          $ref: "#/components/responses/TooManyRequests"
+        5XX:
+          $ref: "#/components/responses/InternalServerError"
+  /gdbljobstate/{receiptId}:
+    get:
+      tags:
+      - "GDBL非同期AI基盤 API"
+      summary: "ジョブ実行状態取得"
+      description: "指定した受付IDのジョブ実行状態を取得します"
+      parameters:
+        - $ref: "#/components/parameters/api_key"
+        - in: "path"
+          name: "receiptId"
+          description: "受付ID"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        200:
+          $ref: "#/components/responses/200OK_jobstate"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        404:
+          $ref: "#/components/responses/NotFound"
+        405:
+          $ref: "#/components/responses/MethodNotAllowed"
+        406:
+          $ref: "#/components/responses/NotAcceptable"
+        409:
+          $ref: "#/components/responses/Conflict"
+        415:
+          $ref: "#/components/responses/UnsupportedMediaType"
+        429:
+          $ref: "#/components/responses/TooManyRequests"
+        5XX:
+          $ref: "#/components/responses/InternalServerError"
+components:
+  parameters:
+    api_key:
+      in: "header"
+      name: "X-Api-Key"
+      description: "ヘッダに指定するAPIキー"
+      required: true
+      content:
+        application/json:
+          schema:
+            type: "string"
+  responses:
+    200OK_urlallocate:
+      description: "リクエスト成功。業務エラーが発生した場合はレスポンスボディのcode値が「0.0」以外となる。（エラーコード 1.1：単項目チェックエラー）"
+      content:
+        application/json:
+          schema:
+            type: "object"
+            properties:
+              uploadDestination:
+                $ref: "#/components/schemas/urlallocate"
+    200OK_execute:
+      description: "リクエスト成功。業務エラーが発生した場合はレスポンスボディのcode値が「0.0」以外となる。（エラーコード 1.1：単項目チェックエラー、5.1該当データなし、5.2受付上限エラー）"
+      content:
+        application/json:
+          schema:
+            type: "object"
+            properties:
+              executionReception:
+                $ref: "#/components/schemas/common_res"
+    200OK_jobstate:
+      description: "リクエスト成功。業務エラーが発生した場合はレスポンスボディのcode値が「0.0」以外となる。（エラーコード 1.1：単項目チェックエラー、5.1該当データなし）"
+      content:
+        application/json:
+          schema:
+            type: "object"
+            properties:
+              statusInf:
+                $ref: "#/components/schemas/jobstate"
+    BadRequest:
+      description: "リクエスト構文不正"
+    Unauthorized:
+      description: "認可エラー"
+    Forbidden:
+      description: "認証情報不正"
+    NotFound:
+      description: "リクエストURI不正"
+    MethodNotAllowed:
+      description: "リクエストメソッド不正"
+    NotAcceptable:
+      description: "Acceptヘッダ不正"
+    Conflict:
+      description: "リクエストタイムアウト"
+    UnsupportedMediaType:
+      description: "コンテンツタイプ不正"
+    TooManyRequests:
+      description: "リクエスト数上限超過"
+    InternalServerError: 
+      description: "システムエラー"
+  schemas:
+    common_res:
+      type: "object"
+      required:
+      - "result"
+      - "code"
+      - "details"
+      properties:
+        result:
+          type: "string"
+          example: "OK"
+        code:
+          type: "string"
+          example: "0.0"
+        details:
+          type: "string"
+          example: ""
+    urlallocate:
+      allOf:
+        - $ref: "#/components/schemas/common_res"
+        - type: "object"
+          properties:
+            receiptId:
+              type: "string"
+              example: "1234567890"
+            urlUl:
+              type: "string"
+              example: "s3-xxx001-xxx001-xxx001-001/1234567890/UL/550e8400-e29b-41d4-a716-446655440000/"
+    jobstate:
+      allOf:
+        - $ref: "#/components/schemas/common_res"
+        - type: "object"
+          properties:
+            status:
+              type: "string"
+              example: "3"
+            urlDl:
+              type: "string"
+              example: "s3-xxx001-xxx001-xxx001-001/1234567890/DL/550e8400-e29b-41d4-a716-446655440000/"
+            receiptOrder:
+              type: "string"
+              example: ""
+    
+    
+    
+    
