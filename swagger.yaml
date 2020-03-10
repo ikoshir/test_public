@@ -1,0 +1,203 @@
+swagger: '2.0'
+
+info:
+  version: 1.0.0
+  title:  "GDBL非同期AI基盤 API"
+  description: |
+    #### GDBLAIプラットフォームで利用可能なAPIの仕様を以下に示します。
+  #termsOfService: aaaaa
+  contact:
+    email: "gdbl_helpdesk@kits.nttdata.co.jp"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+schemes:
+  - "https"
+host: "apge-001.mgt.t-openconnect.com"
+#basePath: /
+paths:
+  /gdblurlallocate:
+    post:
+      summary: "アップロード先払い出し"
+      description: "S3の入出力フォルダを作成し、受付IDとURLを返却します"
+      produces:
+        - "application/json"
+      consumes:
+        - "application/json"
+      parameters:
+        - name: "X-Api-Key"
+          in: "header"
+          description: "ヘッダに指定するAPIキー"
+          type: "string"
+          required: true
+      responses:
+        200:
+          description: "リクエスト成功。業務エラーが発生した場合はレスポンスボディのcode値が「0.0」以外となる。（エラーコード 1.1：単項目チェックエラー、5.1該当データなし、5.2受付上限エラー）"
+          schema:
+            type: "object"
+            properties:
+              uploadDestination:
+                $ref: "#/definitions/urlallocate"
+        400:
+          description: "リクエスト構文不正"
+        401:
+          description: "認可エラー"
+        403:
+          description: "認証情報不正"
+        404:
+          description: "リクエストURI不正"
+        405:
+          description: "リクエストメソッド不正"
+        406:
+          description: "Acceptヘッダ不正"
+        409:
+          description: "リクエストタイムアウト"
+        415:
+          description: "コンテンツタイプ不正"
+        429:
+          description: "リクエスト数上限超過"
+        500:
+          description: "システムエラー"
+  /gdblsoudenanalyze:
+    post:
+      summary: "送電線診断AI実行受付"
+      description: "指定した受付IDの送電線診断AIのジョブ実行依頼を発行します"
+      produces:
+        - "application/json"
+      consumes:
+        - "application/json"
+      parameters:
+        - name: "X-Api-Key"
+          in: "header"
+          description: "ヘッダに指定するAPIキー"
+          type: "string"
+          required: true
+        - name: "body"
+          in: "body"
+          schema:
+            type: "object"
+            properties:
+              executionReception:
+                type: "object"
+                properties:
+                  receiptId:
+                    example: "1234567890"
+          description: "受付IDをjsonで指定する"
+          required: true
+      responses:
+        200:
+          description: "リクエスト成功。業務エラーが発生した場合はレスポンスボディのcode値が「0.0」以外となる。（エラーコード 1.1：単項目チェックエラー、5.1該当データなし、5.2受付上限エラー）"
+          schema:
+            type: "object"
+            properties:
+              executionReception:
+                $ref: "#/definitions/common_res"
+        400:
+          description: "リクエスト構文不正"
+        401:
+          description: "認可エラー"
+        403:
+          description: "認証情報不正"
+        404:
+          description: "リクエストURI不正"
+        405:
+          description: "リクエストメソッド不正"
+        406:
+          description: "Acceptヘッダ不正"
+        409:
+          description: "リクエストタイムアウト"
+        415:
+          description: "コンテンツタイプ不正"
+        429:
+          description: "リクエスト数上限超過"
+        500:
+          description: "システムエラー"
+  /gdbljobstate/{receiptId}:
+    get:
+      summary: "ジョブ実行状態取得"
+      description: "指定した受付IDのジョブ実行状態を取得します"
+      parameters:
+        - name: "X-Api-Key"
+          in: "header"
+          description: "ヘッダに指定するAPIキー"
+          type: "string"
+          required: true
+        - name: "receiptId"
+          in: "path"
+          description: "受付ID"
+          type: "string"
+          required: true
+      responses:
+        200:
+          description: "リクエスト成功。業務エラーが発生した場合はレスポンスボディのcode値が「0.0」以外となる。（エラーコード 1.1：単項目チェックエラー、5.1該当データなし、5.2受付上限エラー）"
+          schema:
+            type: "object"
+            properties:
+              statusInf:
+                $ref: "#/definitions/jobstate"
+        400:
+          description: "リクエスト構文不正"
+        401:
+          description: "認可エラー"
+        403:
+          description: "認証情報不正"
+        404:
+          description: "リクエストURI不正"
+        405:
+          description: "リクエストメソッド不正"
+        406:
+          description: "Acceptヘッダ不正"
+        409:
+          description: "リクエストタイムアウト"
+        415:
+          description: "コンテンツタイプ不正"
+        429:
+          description: "リクエスト数上限超過"
+        500:
+          description: "システムエラー"
+definitions:
+  common_res:
+    type: "object"
+    required:
+      - "result"
+      - "code"
+      - "details"
+    properties:
+      result:
+        type: "string"
+        example: "OK"
+      code:
+        type: "string"
+        example: "0.0"
+      details:
+        type: "string"
+        example: ""
+  urlallocate:
+    allOf:
+      - $ref: "#/definitions/common_res"
+      - type: "object"
+        properties:
+          receiptId:
+            type: "string"
+            example: "1234567890"
+          urlUl:
+            type: "string"
+            example: "s3-xxx001-xxx001-xxx001-001/1234567890/UL/550e8400-e29b-41d4-a716-446655440000/"
+  jobstate:
+    allOf:
+      - $ref: "#/definitions/common_res"
+      - type: "object"
+        properties:
+          status:
+            type: "string"
+            example: "3"
+          urlDl:
+            type: "string"
+            example: "s3-xxx001-xxx001-xxx001-001/1234567890/DL/550e8400-e29b-41d4-a716-446655440000/"
+          receiptOrder:
+            type: "string"
+            example: ""
+    
+    
+    
+    
